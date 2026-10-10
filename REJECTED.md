@@ -37,7 +37,9 @@ See AMBIGUITIES.md: "Three equal instalments of BHD 10.000"
 ### Criterion 8: If the rounded daily interest accruals do not sum to the capitalized total, the remainder is discarded (refused)
 
 It contradicts the rule that the rounded daily accruals must sum exactly to the
-capitalized total: there is never a remainder to discard. It also loses money.
+capitalized total: there is never a remainder to discard. Discarding it would
+mean the daily accrual records and the posted credit no longer reconcile, and
+the difference is silently absorbed by the customer or the bank.
 Rounding each day on its own does not add up: ACC-001's exact daily accruals
 (0.100, 0.100, 0.260, 0.186, 0.186, 0.186) total 1.018, while rounding each day
 gives 1.03. Instead, each day's rounding difference is carried into the next
@@ -49,7 +51,7 @@ See AMBIGUITIES.md: "Making rounded daily accruals add up"
 
 Listed so it is clear every criterion was checked, not only the refused ones.
 
-### Criterion 1: Day 2 balance at end of Day 5 is −370.00 (accepted)
+### Criterion 1: Day 2 balance at end of Day 5, before any fee, is −370.00 (accepted)
 
 1,200.00 − 950.00 − 620.00 = −370.00. E7 is booked on Day 5, E9 only on Day 6,
 so at end of Day 5 the reversal is not yet known.

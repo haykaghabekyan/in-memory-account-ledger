@@ -7,10 +7,12 @@ Every ambiguity found in the spec and how it was resolved.
 A day's closing balance depends on when it is evaluated (before fees, Day 2 is
 250.00 at end of Day 4, −370.00 at end of Day 5, 250.00 at end of Day 6).
 Resolution: a balance is queried for a value date X as known at the end of
-Day Y: entries with value date ≤ X, counting only events processed before
-Day Y's close. For E1–E9 this is the same as booked date ≤ Y. E10 is the
-exception: it is booked on Day 5 but arrives after Day 5 has closed, so it
-first appears in the Day 6 view (see "E10 arrives after Day 5 has closed").
+Day Y: entries with value date ≤ X, counting only what was posted up to and
+including Day Y's close (events processed that day, plus the fees and fee
+reversals the close itself posts). For E1–E9 this is the same as booked date
+≤ Y. E10 is the exception: it is booked on Day 5 but arrives after Day 5 has
+closed, so it first appears in the Day 6 view (see "E10 arrives after Day 5
+has closed").
 
 ### How is a day's fee decided when fees change later balances?
 
@@ -31,12 +33,12 @@ not handled specially.
 
 A back-dated entry can show that an authorization would have been declined had
 it been known at the time (E7 makes Auth-A's Day 2 available balance negative).
-Resolution: no. An authorization is decided once, with what is booked at that
-moment, and stays final. The same applies to Auth-B's decline after E9.
+Resolution: no. An authorization is decided once, with what has been processed
+at that moment, and stays final. The same applies to Auth-B's decline after E9.
 
 ### Settlements without a known authorization
 
-The spec says such settlements are rejected, but not what "rejected" leaves
+Criterion 4 says such settlements are rejected, but not what "rejected" leaves
 behind. In real card networks, settlements without a matching authorization
 can be legitimate (offline transactions, so-called force posts), and network
 rules may require the bank to honour them.
@@ -57,8 +59,8 @@ collect, the more likely the money is gone, a risk that adds up across many
 accounts. Posting daily keeps the bank's view of what each customer owes
 current, shows the fee to the customer promptly, and lowers the available
 balance used for the next authorization. Interest is the opposite case: it is
-owed by the bank, so accruing daily and paying at the end of the cycle (Day 6)
-carries little risk for the customer.
+owed by the bank, so earning it per day but paying it at the end of the cycle
+(Day 6) carries little risk for the customer.
 Assessing fees only once at the end of the window was rejected: it is not
 "once per day", and E9 would hide E7's fees entirely.
 
@@ -110,6 +112,9 @@ The rounded accruals sum to 1.02, the exact total (1.018) correctly rounded,
 and 1.02 is capitalized. The final carry (−0.002) is less than half a minor
 unit and cannot be paid in AED; it is the unavoidable rounding of the total,
 not a discarded remainder.
+The exact accruals and the carry are intermediate calculation values and are
+never stored. Every stored amount (ledger entries and the rounded daily
+accruals) is at the account's precision, as the spec requires.
 The alternative, capitalizing the sum of independently rounded accruals (1.03),
 also "sums exactly", but it drifts from the exact amount (here it overpays by
 0.012), and the drift adds up across many accounts.
@@ -161,9 +166,11 @@ debited from the account itself, so it must be in that account's currency. The
 spec gives no BHD fee and no exchange rate.
 Resolution: the fee applies only to AED accounts. If a BHD account closes a day
 negative, no fee is charged and an error is reported ("no overdraft fee defined
-for BHD"). Inventing a BHD amount, or converting at a hard-coded rate, would put
-a number in the ledger that the spec does not support. This never triggers in
-the stream: ACC-002 never goes negative.
+for BHD"). The rule is non-negotiable, so it is not being skipped: it cannot be
+applied to a BHD account without a number the spec does not give, and the error
+makes that visible instead of hiding it. Inventing a BHD amount, or converting
+at a hard-coded rate, would put a number in the ledger that the spec does not
+support. This never triggers in the stream: ACC-002 never goes negative.
 Related: in practice interest rates also differ by currency. The spec gives one
 rate (0.04% per day) for both, and it is applied to both as given.
 

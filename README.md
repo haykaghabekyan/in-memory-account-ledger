@@ -14,5 +14,5 @@ _TBD_
 
 - [NUMBERS.md](NUMBERS.md): every constant and why that value
 - [AMBIGUITIES.md](AMBIGUITIES.md): ambiguities found and how they were resolved
-- [REJECTED.md](REJECTED.md): refused acceptance criteria, plus approaches abandoned mid-build
+- [REJECTED.md](REJECTED.md): assessment of every acceptance criterion (refused and accepted), plus approaches abandoned mid-build
 - [WORKLOG.md](WORKLOG.md): timestamped work log
