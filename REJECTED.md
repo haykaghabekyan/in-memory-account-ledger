@@ -10,6 +10,21 @@ Day 4 −155.00, Day 5 −155.00. Three days close negative, so E7 causes three
 fees (Days 2, 4, 5). Including earlier fees in later balances (Day 3 becomes
 +5.00) gives the same three fees, so the count does not depend on that choice.
 
+### Criterion 6: After E9, all balances and fees return to their pre-E7 values (refused)
+
+With our fee-refund rule, the current ledger balances do return (Days 2–6:
+250.00, 650.00, 465.00, 465.00, 465.00), and the three fees caused by E7 net
+to zero. But "all … return" is not true:
+- The ledger keeps E7, E9, three fees and three fee reversals. Append-only
+  means the history never returns, only the balances.
+- Auth-B was declined because of E7. The decision is final, so E9 cannot
+  restore the hold Auth-B would otherwise have had.
+- Balances as known at end of Day 5 (e.g. Day 5 at −230.00) stay as they were.
+- Fees return only because we chose to refund them. The spec does not say
+  so. If fees were final once charged, Day 6 would close at 390.00.
+See AMBIGUITIES.md: "When are fees assessed?" and "What happens to a fee when
+its day stops being negative?"
+
 ## Assessed and accepted criteria
 
 Listed so it is clear every criterion was checked, not only the refused ones.
@@ -42,8 +57,8 @@ See AMBIGUITIES.md: "Settlements without a known authorization".
 
 True as a rule: a hold reserves money without moving it. But in this stream
 Auth-B is declined. When E8 arrives on Day 5, E7 has already made the balance
-negative (−155.00 before fees, −205.00 after the Day 2 and Day 4 fees), so the
-condition is never met. The rule is covered by a separate unit test.
+negative (−155.00; fees are only assessed at the end-of-day close), so the
+condition is never met.
 See AMBIGUITIES.md: "Are authorization decisions revisited?"
 
 ## Approaches abandoned mid-build

@@ -39,3 +39,40 @@ rules may require the bank to honour them.
 Resolution: within this model the settlement is rejected and no money moves,
 but the event is recorded as an exception for audit rather than discarded.
 A force-post policy is out of scope.
+
+### When are fees assessed?
+
+The spec says fees are assessed once per day, but not when a fee for a past day
+(made negative by a back-dated entry) is charged.
+Resolution: an end-of-day close runs daily. It re-evaluates every day up to the
+current day (as known at that moment), oldest first, and posts or reverses fees.
+This matches criterion 1 ("evaluated at end of Day 5 and before any fee is
+assessed").
+Reasoning: a fee is owed by the customer, and the longer the bank waits to
+collect, the more likely the money is gone, a risk that adds up across many
+accounts. Posting daily keeps the bank's view of what each customer owes
+current, shows the fee to the customer promptly, and lowers the available
+balance used for the next authorization. Interest is the opposite case: it is
+owed by the bank, so accruing daily and paying at the end of the cycle (Day 6)
+carries little risk for the customer.
+Assessing fees only once at the end of the window was rejected: it is not
+"once per day", and E9 would hide E7's fees entirely.
+
+### "Value date equal to the day assessed"
+
+This could mean the day whose balance was negative (Day 2) or the day the check
+ran (Day 5).
+Resolution: the day whose balance was negative. Otherwise a Day 2 fee would
+only count from Day 5 and the Day 2–4 balances would never show it.
+
+### What happens to a fee when its day stops being negative?
+
+After E9, Days 2, 4 and 5 are no longer negative, but their fees are already
+posted. The spec does not say whether they stay.
+Resolution: they are refunded. Like the fees themselves, a fee reversal is a
+system-generated entry (not an input event): booked on the day the change is
+discovered, value-dated to the fee's day, and referencing the fee it cancels.
+Reasoning: E9 is value-dated to Day 2, which treats E7 as an error that never
+should have happened, so the fees it caused should not stand either. If a day
+turns negative again later, a new fee is charged. An account has at most one
+active (not reversed) fee per day.
