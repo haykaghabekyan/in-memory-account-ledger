@@ -76,3 +76,10 @@ Reasoning: E9 is value-dated to Day 2, which treats E7 as an error that never
 should have happened, so the fees it caused should not stand either. If a day
 turns negative again later, a new fee is charged. An account has at most one
 active (not reversed) fee per day.
+
+### Three equal instalments of BHD 10.000
+
+10.000 / 3 cannot be split into three equal amounts at 3 decimal places.
+Resolution: as equal as the precision allows, with the total preserved. The
+last instalment takes the rounding difference (3.333, 3.333, 3.334). All three
+have the same value date, so the order does not affect balances or interest.

@@ -25,6 +25,14 @@ to zero. But "all … return" is not true:
 See AMBIGUITIES.md: "When are fees assessed?" and "What happens to a fee when
 its day stops being negative?"
 
+### Criterion 7: The three BHD instalments in E10 must each be BHD 3.334 (refused)
+
+3 × 3.334 = 10.002, so the account would be credited 0.002 more than the
+10.000 sent. Splitting must preserve the total: the first two instalments are
+10.000 / 3 rounded to 3 dp (3.333 each), and the last takes the remainder,
+10.000 − 6.666 = 3.334.
+See AMBIGUITIES.md: "Three equal instalments of BHD 10.000"
+
 ## Assessed and accepted criteria
 
 Listed so it is clear every criterion was checked, not only the refused ones.
