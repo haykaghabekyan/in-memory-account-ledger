@@ -83,3 +83,29 @@ active (not reversed) fee per day.
 Resolution: as equal as the precision allows, with the total preserved. The
 last instalment takes the rounding difference (3.333, 3.333, 3.334). All three
 have the same value date, so the order does not affect balances or interest.
+
+### Making rounded daily accruals add up
+
+The spec requires the rounded daily accruals to sum exactly to the capitalized
+total, but not how. Rounding each day independently drifts: ACC-001's exact
+accruals total 1.018, but rounding each day gives 1.03.
+Resolution: carry forward the rounding difference. Each day, the exact accrual
+plus the previous day's carry is rounded to the account's precision, and the
+difference becomes the next day's carry:
+
+| Day | Exact | + carry | Rounded | New carry |
+|---|---|---|---|---|
+| 1 | 0.100 | 0.100 | 0.10 | 0.000 |
+| 2 | 0.100 | 0.100 | 0.10 | 0.000 |
+| 3 | 0.260 | 0.260 | 0.26 | 0.000 |
+| 4 | 0.186 | 0.186 | 0.19 | −0.004 |
+| 5 | 0.186 | 0.182 | 0.18 | +0.002 |
+| 6 | 0.186 | 0.188 | 0.19 | −0.002 |
+
+The rounded accruals sum to 1.02, the exact total (1.018) correctly rounded,
+and 1.02 is capitalized. The final carry (−0.002) is less than half a minor
+unit and cannot be paid in AED; it is the unavoidable rounding of the total,
+not a discarded remainder.
+The alternative, capitalizing the sum of independently rounded accruals (1.03),
+also "sums exactly", but it drifts from the exact amount (here it overpays by
+0.012), and the drift adds up across many accounts.

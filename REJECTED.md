@@ -33,6 +33,17 @@ its day stops being negative?"
 10.000 − 6.666 = 3.334.
 See AMBIGUITIES.md: "Three equal instalments of BHD 10.000"
 
+### Criterion 8: If the rounded daily interest accruals do not sum to the capitalized total, the remainder is discarded (refused)
+
+It contradicts the rule that the rounded daily accruals must sum exactly to the
+capitalized total: there is never a remainder to discard. It also loses money.
+Rounding each day on its own does not add up: ACC-001's exact daily accruals
+(0.100, 0.100, 0.260, 0.186, 0.186, 0.186) total 1.018, while rounding each day
+gives 1.03. Instead, each day's rounding difference is carried into the next
+day, so the rounded accruals (0.10, 0.10, 0.26, 0.19, 0.18, 0.19) sum to 1.02,
+which is the exact total correctly rounded, and that is what is capitalized.
+See AMBIGUITIES.md: "Making rounded daily accruals add up"
+
 ## Assessed and accepted criteria
 
 Listed so it is clear every criterion was checked, not only the refused ones.
