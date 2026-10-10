@@ -6,7 +6,11 @@ Every ambiguity found in the spec and how it was resolved.
 
 A day's closing balance depends on when it is evaluated (Day 2 is 250.00 at end of
 Day 4, −370.00 at end of Day 5, 250.00 at end of Day 6).
-Resolution: balances are queried by value date ≤ X and booked date ≤ Y.
+Resolution: a balance is queried for a value date X as known at the end of
+Day Y: entries with value date ≤ X, counting only events processed before
+Day Y's close. For E1–E9 this is the same as booked date ≤ Y. E10 is the
+exception: it is booked on Day 5 but arrives after Day 5 has closed, so it
+first appears in the Day 6 view (see "E10 arrives after Day 5 has closed").
 
 ### How is a day's fee decided when fees change later balances?
 
@@ -109,3 +113,67 @@ not a discarded remainder.
 The alternative, capitalizing the sum of independently rounded accruals (1.03),
 also "sums exactly", but it drifts from the exact amount (here it overpays by
 0.012), and the drift adds up across many accounts.
+
+### Are daily interest accruals ledger entries?
+
+The spec says accruals "capitalize as a single credit at end of Day 6", but not
+whether each daily accrual is posted to the ledger before that.
+Resolution: no. Daily accruals are memo records that do not change the ledger
+balance. Only the capitalization at end of Day 6 is a ledger entry. The
+accruals are calculated from the closing balances as known at the end of
+Day 6, so back-dated entries (E7, E9) are already reflected and no accrual
+corrections are needed.
+Consequence: interest does not compound within the window. If accruals were
+posted daily, each day's interest would also earn interest, and every
+back-dated event would need accrual reversals as well as fee reversals.
+
+### Rounding mode
+
+The spec gives the precision (AED 2 dp, BHD 3 dp) but not how to round.
+Resolution: round half up (e.g. 0.185 → 0.19). It is the simplest rule to
+explain, and with the interest carry-forward any bias from the mode does not
+accumulate. No amount in this stream lands exactly on a half (e.g. 0.186,
+3.3333…), so the choice does not change any output here.
+
+### Is there an overdraft limit? Are debits checked?
+
+The spec only checks authorizations (available balance must stay ≥ 0). It sets
+no overdraft limit and says nothing about checking other events.
+Resolution: debits, settlements, reversals and fees are always posted, even if
+they make the balance negative. A debit or settlement records money that has
+already moved (and a back-dated one like E7 describes the past), so it cannot
+be declined. There is no overdraft limit, so in this model a balance can go
+negative without bound. A real account would have an agreed limit.
+
+### Overdraft fee for a non-AED account
+
+The fee is defined as AED 25.00, "per account", but ACC-002 is in BHD. A fee is
+debited from the account itself, so it must be in that account's currency. The
+spec gives no BHD fee and no exchange rate.
+Resolution: the fee applies only to AED accounts. If a BHD account closes a day
+negative, no fee is charged and an error is reported ("no overdraft fee defined
+for BHD"). Inventing a BHD amount, or converting at a hard-coded rate, would put
+a number in the ledger that the spec does not support. This never triggers in
+the stream: ACC-002 never goes negative.
+Related: in practice interest rates also differ by currency. The spec gives one
+rate (0.04% per day) for both, and it is applied to both as given.
+
+### How long does a hold last?
+
+The spec does not say when an unsettled hold ends. Auth-B "is never settled
+inside the window".
+Resolution: holds have no expiry in this model; a hold ends only when it is
+settled. In practice banks release unused holds automatically after a period
+that depends on the card network and merchant type. No expiry period is chosen,
+because the stream never needs one: Auth-A is settled, and Auth-B is declined,
+so it never has a hold.
+
+### E10 arrives after Day 5 has closed
+
+Events are replayed in the listed order. E10 is booked on Day 5 but listed after
+E9 (Day 6), so by the time it arrives, Day 5 has already been closed.
+Resolution: E10 is accepted as a late booking with its stated booked date and
+value date (Day 5). It is reported in the Day 6 output, where it was actually
+processed, marked as booked on Day 5. The Day 6 close re-evaluates Day 5 for
+ACC-002, so E10 counts towards Day 5's balance and interest (BHD 0.004 for
+Day 5). Fees are unaffected because ACC-002 stays positive.
