@@ -4,8 +4,8 @@ Every ambiguity found in the spec and how it was resolved.
 
 ### Balance as of when?
 
-A day's closing balance depends on when it is evaluated (Day 2 is 250.00 at end of
-Day 4, −370.00 at end of Day 5, 250.00 at end of Day 6).
+A day's closing balance depends on when it is evaluated (before fees, Day 2 is
+250.00 at end of Day 4, −370.00 at end of Day 5, 250.00 at end of Day 6).
 Resolution: a balance is queried for a value date X as known at the end of
 Day Y: entries with value date ≤ X, counting only events processed before
 Day Y's close. For E1–E9 this is the same as booked date ≤ Y. E10 is the
@@ -126,6 +126,15 @@ corrections are needed.
 Consequence: interest does not compound within the window. If accruals were
 posted daily, each day's interest would also earn interest, and every
 back-dated event would need accrual reversals as well as fee reversals.
+
+### Is the interest credit part of Day 6's closing balance?
+
+Day 6's accrual is calculated on Day 6's closing balance, and the capitalized
+credit is posted at end of Day 6, so each seems to depend on the other.
+Resolution: Day 6's accrual is calculated on the balance before the credit
+(like a fee being decided excluding itself). The credit is then posted with
+value date Day 6, so the reported Day 6 closing balance includes it
+(ACC-001: 465.00 + 1.02 = 466.02; ACC-002: 10.000 + 0.008 = 10.008).
 
 ### Rounding mode
 
