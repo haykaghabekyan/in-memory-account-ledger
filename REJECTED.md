@@ -29,4 +29,21 @@ but authorization decisions are not revisited.
 See AMBIGUITIES.md: "Settlement amount differs from the hold" and
 "Are authorization decisions revisited?"
 
+### Criterion 4: A settlement referencing an unknown authorization is rejected and no funds leave (accepted, with a caveat)
+
+E6 (Auth-Z) has no preceding authorization, so nothing was reserved and the
+bank never approved the amount. The settlement is rejected: no ledger entry is
+posted and Day 4 stays at 465.00. Caveat: it is not silently dropped. The event
+is kept in the event log as an exception, so there is an audit record of what
+arrived and why it was refused.
+See AMBIGUITIES.md: "Settlements without a known authorization".
+
+### Criterion 5: If Auth-B is approved, its hold reduces available balance but not ledger balance (accepted)
+
+True as a rule: a hold reserves money without moving it. But in this stream
+Auth-B is declined. When E8 arrives on Day 5, E7 has already made the balance
+negative (−155.00 before fees, −205.00 after the Day 2 and Day 4 fees), so the
+condition is never met. The rule is covered by a separate unit test.
+See AMBIGUITIES.md: "Are authorization decisions revisited?"
+
 ## Approaches abandoned mid-build

@@ -29,3 +29,13 @@ A back-dated entry can show that an authorization would have been declined had
 it been known at the time (E7 makes Auth-A's Day 2 available balance negative).
 Resolution: no. An authorization is decided once, with what is booked at that
 moment, and stays final. The same applies to Auth-B's decline after E9.
+
+### Settlements without a known authorization
+
+The spec says such settlements are rejected, but not what "rejected" leaves
+behind. In real card networks, settlements without a matching authorization
+can be legitimate (offline transactions, so-called force posts), and network
+rules may require the bank to honour them.
+Resolution: within this model the settlement is rejected and no money moves,
+but the event is recorded as an exception for audit rather than discarded.
+A force-post policy is out of scope.
