@@ -37,7 +37,9 @@ class MoneyTest {
 
     @Test
     void refusesToMixCurrencies() {
-        assertThrows(IllegalArgumentException.class, () -> Money.of("1.00", AED).plus(Money.of("1.000", BHD)));
+        Money dirham = Money.of("1.00", AED);
+        Money dinar = Money.of("1.000", BHD);
+        assertThrows(IllegalArgumentException.class, () -> dirham.plus(dinar));
     }
 
     @Test
