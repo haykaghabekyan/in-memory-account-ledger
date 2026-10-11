@@ -57,6 +57,8 @@ Domain types live in `src/main/java/ledger/domain`:
 | `ProcessingError` | something refused or not possible, kept for the report |
 | `InterestAccrual` | a memo record of one day's rounded interest; not a ledger entry |
 
+Input events live in `src/main/java/ledger/event`. `Event` is a sealed interface (`id`, `bookedDay`, `accountId`) implemented by one record per event type: `Credit`, `Debit`, `Authorization`, `Settlement`, `Reversal`. Sealing means the compiler knows the complete list of event types. Event amounts are positive as given in the stream; the sign is applied when an entry is posted. A `Reversal` carries only the id of the event it reverses, because its amount and value day come from the original entry.
+
 Design choices in these types:
 
 - **Signed amounts.** Credits are positive and debits negative, so a balance is a plain sum with no direction logic.
