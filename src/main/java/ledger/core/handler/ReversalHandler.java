@@ -27,10 +27,10 @@ public class ReversalHandler implements EventHandler<Reversal> {
     @Override
     public void handle(Reversal reversal, int day) {
         List<Entry> originals = ledger.entriesOf(reversal.reversedEventId());
-        String problem = problemWith(reversal, originals);
-        if (problem != null) {
+        Optional<String> problem = problemWith(reversal, originals);
+        if (problem.isPresent()) {
             ledger.recordError(new ProcessingError(day, reversal.id(), reversal.accountId(),
-                    "Reversal rejected: " + problem));
+                    "Reversal rejected: " + problem.get()));
             return;
         }
         for (int i = 0; i < originals.size(); i++) {
@@ -42,22 +42,22 @@ public class ReversalHandler implements EventHandler<Reversal> {
         }
     }
 
-    /** Why the reversal cannot be applied, or null if it can. */
-    private String problemWith(Reversal reversal, List<Entry> originals) {
+    /** Why the reversal cannot be applied, or empty if it can. */
+    private Optional<String> problemWith(Reversal reversal, List<Entry> originals) {
         String target = reversal.reversedEventId();
         Optional<Event> original = ledger.event(target);
         if (original.isEmpty()) {
-            return "unknown event " + target;
+            return Optional.of("unknown event " + target);
         }
         if (!original.get().accountId().equals(reversal.accountId())) {
-            return target + " belongs to account " + original.get().accountId();
+            return Optional.of(target + " belongs to account " + original.get().accountId());
         }
         if (originals.isEmpty()) {
-            return target + " posted no entries";
+            return Optional.of(target + " posted no entries");
         }
         if (originals.stream().anyMatch(ledger::isReversed)) {
-            return target + " is already reversed";
+            return Optional.of(target + " is already reversed");
         }
-        return null;
+        return Optional.empty();
     }
 }

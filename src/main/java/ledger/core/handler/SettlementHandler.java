@@ -35,10 +35,10 @@ public class SettlementHandler implements EventHandler<Settlement> {
 
     @Override
     public void handle(Settlement settlement, int day) {
-        String problem = problemWith(settlement);
-        if (problem != null) {
+        Optional<String> problem = problemWith(settlement);
+        if (problem.isPresent()) {
             ledger.recordError(new ProcessingError(day, settlement.id(), settlement.accountId(),
-                    "Settlement rejected: " + problem));
+                    "Settlement rejected: " + problem.get()));
             return;
         }
         ledger.post(new Entry(settlement.id(), settlement.accountId(), settlement.amount().negate(),
@@ -46,22 +46,22 @@ public class SettlementHandler implements EventHandler<Settlement> {
                 "settles " + settlement.authId()));
     }
 
-    /** Why the settlement cannot be applied, or null if it can. */
-    private String problemWith(Settlement settlement) {
+    /** Why the settlement cannot be applied, or empty if it can. */
+    private Optional<String> problemWith(Settlement settlement) {
         String authId = settlement.authId();
         Optional<AuthorizationDecision> decision = ledger.decision(authId);
         if (decision.isEmpty()) {
-            return "no authorization " + authId;
+            return Optional.of("no authorization " + authId);
         }
         if (!decision.get().accountId().equals(settlement.accountId())) {
-            return authId + " belongs to account " + decision.get().accountId();
+            return Optional.of(authId + " belongs to account " + decision.get().accountId());
         }
         if (decision.get().decision() == Decision.DECLINED) {
-            return authId + " was declined";
+            return Optional.of(authId + " was declined");
         }
         if (ledger.isSettled(authId)) {
-            return authId + " is already settled";
+            return Optional.of(authId + " is already settled");
         }
-        return null;
+        return Optional.empty();
     }
 }

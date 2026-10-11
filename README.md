@@ -72,6 +72,7 @@ The ledger lives in `src/main/java/ledger/core`, split by responsibility:
 | `Ledger` | the store: accounts and four append-only lists (entries, the event log of `ReceivedEvent`s, errors, authorization decisions), handed out only as read-only copies; balance, active-hold and available-balance queries. No business rules. |
 | `EventProcessor` | the steps every event goes through: validate, record in the event log, check for a duplicate id, then pass it to the handler for its type |
 | `EventHandler<E>` | the interface for one event type's rules (Strategy pattern) |
+| `EndOfDayClose` | the daily close: re-evaluates every day up to the closing day, oldest first, and charges or refunds overdraft fees so each day has an active fee exactly when its balance (excluding its own fee) is negative |
 | `handler/*Handler` | one class per event type: `CreditHandler` (including instalment splits), `DebitHandler`, `ReversalHandler`, `AuthorizationHandler` (approve or decline), `SettlementHandler` (debit and release the hold) |
 
 `process(event, day)` takes the current day from the caller; nothing in the ledger has a clock. `balance(account, valueDay, knownAtEndOfDay)` sums the entries with value day ≤ `valueDay` that were posted by the end of `knownAtEndOfDay`. `available(account, day)` is that balance for the current day, minus active holds. A hold is active while its approved authorization has no settlement entry; it is never stored as a status, so settling releases it without changing anything.

@@ -82,6 +82,9 @@ Reasoning: E9 is value-dated to Day 2, which treats E7 as an error that never
 should have happened, so the fees it caused should not stand either. If a day
 turns negative again later, a new fee is charged. An account has at most one
 active (not reversed) fee per day.
+Because the close only brings each day's fee in line with its balance, running
+it twice for the same day changes nothing: the second run finds every fee
+already in place.
 
 ### Three equal instalments of BHD 10.000
 
@@ -171,6 +174,8 @@ applied to a BHD account without a number the spec does not give, and the error
 makes that visible instead of hiding it. Inventing a BHD amount, or converting
 at a hard-coded rate, would put a number in the ledger that the spec does not
 support. This never triggers in the stream: ACC-002 never goes negative.
+Every close re-evaluates every past day, so the error is reported once per
+account and day, not again at each later close.
 Related: in practice interest rates also differ by currency. The spec gives one
 rate (0.04% per day) for both, and it is applied to both as given.
 

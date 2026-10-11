@@ -31,3 +31,17 @@ stored by mistake.
 Half up (`RoundingMode.HALF_UP`): 0.185 → 0.19, 0.1849 → 0.18. The reasoning is
 in [AMBIGUITIES.md](AMBIGUITIES.md#rounding-mode). Every rounding in the code uses
 one constant, `Money.ROUNDING`, so the mode is defined in a single place.
+
+## Overdraft fee: AED 25.00
+
+Given by the spec. It is a flat amount per account per negative day, not a
+percentage, so it does not depend on how negative the balance is (Day 2 at
+−370.00 and Day 5 at −205.00 are charged the same). Half of it would simply be
+a different price; nothing in the ledger depends on the value, only on it being
+positive.
+
+Fees are configured per currency (`EndOfDayClose.withStandardFees`: AED 25.00
+only). A negative account in a currency with no fee gets an error instead of a
+fee, which is how BHD is handled (see
+[AMBIGUITIES.md](AMBIGUITIES.md#overdraft-fee-for-a-non-aed-account)). No BHD
+amount is invented, and none is derived from an exchange rate.

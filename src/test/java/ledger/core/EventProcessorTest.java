@@ -1,14 +1,12 @@
 package ledger.core;
 
-import static ledger.domain.Currency.AED;
-import static ledger.domain.Currency.BHD;
+import static ledger.TestData.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import ledger.core.handler.CreditHandler;
-import ledger.domain.Account;
 import ledger.domain.Entry;
 import ledger.domain.EntryType;
 import ledger.domain.Money;
@@ -21,21 +19,12 @@ import org.junit.jupiter.api.Test;
 
 class EventProcessorTest {
 
-    private static final String ACC_001 = "ACC-001";
-    private static final String ACC_002 = "ACC-002";
-
-    private static final Credit E1 = new Credit("E1", 1, ACC_001, aed("1200.00"), 1);
-    private static final Debit E2 = new Debit("E2", 1, ACC_001, aed("950.00"), 1);
-    private static final Debit E7 = new Debit("E7", 5, ACC_001, aed("620.00"), 2);
-    private static final Reversal E9 = new Reversal("E9", 6, ACC_001, "E7");
-    private static final Credit E10 = new Credit("E10", 5, ACC_002, bhd("10.000"), 5, 3);
-
     private Ledger ledger;
     private EventProcessor processor;
 
     @BeforeEach
     void setUp() {
-        ledger = new Ledger(List.of(new Account(ACC_001, AED), new Account(ACC_002, BHD)));
+        ledger = newLedger();
         processor = EventProcessor.withStandardHandlers(ledger);
     }
 
@@ -155,13 +144,5 @@ class EventProcessorTest {
     private ProcessingError onlyError() {
         assertEquals(1, ledger.errors().size());
         return ledger.errors().get(0);
-    }
-
-    private static Money aed(String amount) {
-        return Money.of(amount, AED);
-    }
-
-    private static Money bhd(String amount) {
-        return Money.of(amount, BHD);
     }
 }

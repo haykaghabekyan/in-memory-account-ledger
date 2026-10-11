@@ -36,6 +36,10 @@ public class Ledger {
         }
     }
 
+    public List<Account> accounts() {
+        return List.copyOf(accounts.values());
+    }
+
     public Account account(String accountId) {
         Account account = accounts.get(accountId);
         if (account == null) {
