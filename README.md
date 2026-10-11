@@ -79,6 +79,8 @@ The ledger lives in `src/main/java/ledger/core`, split by responsibility:
 
 `process(event, day)` takes the current day from the caller; nothing in the ledger has a clock. `balance(account, valueDay, knownAtEndOfDay)` sums the entries with value day ≤ `valueDay` that were posted by the end of `knownAtEndOfDay`. `Authorizations.available(account, day)` is that balance for the current day, minus active holds. A hold is active while its approved authorization has no settlement entry; it is never stored as a status, so settling releases it without changing anything.
 
+The replay lives in `src/main/java/ledger/replay`: `EventStream` (the accounts and E1 to E10 in the listed order, each with the day it is processed), `Replay` (processes each day's events, then runs the close, plus interest after the last close) and `DailyReport` (prints one day from what the ledger has stored). `Main` runs the replay on standard output.
+
 All parts are created and connected in one place, the composition root `src/main/java/ledger/LedgerSetup.java`, which also holds the overdraft fee and interest rate configuration. `EventProcessor` only knows the `EventHandler` interface, so a new event type means a new handler class plus one line in `LedgerSetup`; `EventProcessor` and `Ledger` do not change. Because handlers are looked up in a map, the compiler can no longer check that every event type is handled, so `EventProcessor` checks it when it is created (against the permitted subclasses of the sealed `Event`) and refuses to start if a handler is missing.
 
 Design choices in these types:
@@ -92,7 +94,44 @@ Design choices in these types:
 
 ## How to read the output
 
-_TBD_
+`mvn -q compile exec:java` replays E1 to E10 in the listed order (not sorted by booked day) and prints one block per day, Day 1 to Day 6. Each block is printed right after that day's end-of-day close, so it shows the ledger as known at the end of that day. On Day 6, interest is capitalized after the close and before the block is printed.
+
+Each block has the same sections; an empty one prints `none`:
+
+| Section | What it shows |
+|---|---|
+| Events | the events processed that day, in arrival order, with their outcome: `APPROVED`/`DECLINED` for authorizations (with the available balance after the hold), `REJECTED` when nothing was posted, `(back-dated)` when the value day is before the booked day, `late booking` when the event arrived after its booked day had closed |
+| Closing ledger balance | each account's balance for that day (entries with value day up to that day, as known at its close), and the available balance (ledger minus active holds) |
+| Balances by value day, as known now | the closing balance of every day so far, as known at this day's close. This is where back-dated entries show: E7 rewrites Day 2 on Day 5, and E9 rewrites it back on Day 6 |
+| Fees | overdraft fees charged (`-25.00`) or refunded (`+25.00`) by that day's close, and the day each one is for |
+| Interest | Day 6 only: each account's rounded daily accruals for Days 1 to 6 and the credit they capitalize into |
+| Authorizations | every authorization decided so far: `ACTIVE` (hold reserved), `SETTLED` (with the settled amount) or `DECLINED` |
+| Errors | what was refused that day: the event (or `close` for the end-of-day close), the account and the reason |
+
+Day 5, for example:
+
+```
+=== Day 5 ===
+Events
+  E7   DEBIT          ACC-001  620.00 AED  value Day 2 (back-dated)
+  E8   AUTHORIZATION  ACC-001  Auth-B 90.00 AED  DECLINED (available after hold -245.00)
+Closing ledger balance
+  ACC-001     -230.00 AED   available    -230.00
+  ACC-002       0.000 BHD   available      0.000
+Balances by value day, as known now
+  ACC-001  D1 250.00 | D2 -395.00 | D3 5.00 | D4 -205.00 | D5 -230.00
+  ACC-002  D1 0.000 | D2 0.000 | D3 0.000 | D4 0.000 | D5 0.000
+Fees
+  charged   FEE-ACC-001-D2-1         -25.00 AED  for Day 2
+  charged   FEE-ACC-001-D4-1         -25.00 AED  for Day 4
+  charged   FEE-ACC-001-D5-1         -25.00 AED  for Day 5
+Authorizations
+  Auth-A  ACC-001      200.00  SETTLED   approved Day 2, settled for 185.00 on Day 4
+  Auth-B  ACC-001       90.00  DECLINED  declined Day 5
+Errors          none
+```
+
+Day 5 closes at -230.00: E7 (620.00, value Day 2) was posted that day, so the Day 2 to Day 5 balances drop, and the close charges fees for Days 2, 4 and 5. Auth-B was declined because E7 had already made the balance -155.00 when it arrived.
 
 ## Documents
 

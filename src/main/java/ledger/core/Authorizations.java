@@ -3,6 +3,7 @@ package ledger.core;
 import java.util.Optional;
 import ledger.domain.AuthorizationDecision;
 import ledger.domain.Decision;
+import ledger.domain.Entry;
 import ledger.domain.EntryType;
 import ledger.domain.Money;
 import ledger.event.Settlement;
@@ -25,12 +26,18 @@ public class Authorizations {
         return ledger.decisions().stream().filter(decision -> decision.authId().equals(authId)).findFirst();
     }
 
-    /** Whether a settlement entry has been posted for this authorization. */
-    public boolean isSettled(String authId) {
+    /** The settlement entry posted for this authorization, if it is settled. */
+    public Optional<Entry> settlement(String authId) {
         return ledger.entries().stream()
                 .filter(entry -> entry.type() == EntryType.SETTLEMENT)
-                .map(entry -> ledger.event(entry.sourceEventId()).orElseThrow())
-                .anyMatch(event -> event instanceof Settlement settlement && settlement.authId().equals(authId));
+                .filter(entry -> ledger.event(entry.sourceEventId()).orElseThrow() instanceof Settlement settlement
+                        && settlement.authId().equals(authId))
+                .findFirst();
+    }
+
+    /** Whether a settlement entry has been posted for this authorization. */
+    public boolean isSettled(String authId) {
+        return settlement(authId).isPresent();
     }
 
     /** The total of approved authorizations on the account that are not settled yet. */

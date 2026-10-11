@@ -44,7 +44,7 @@ public class AuthorizationHandler implements EventHandler<Authorization> {
         }
         Money availableAfterHold = authorizations.available(authorization.accountId(), day).minus(authorization.amount());
         Decision decision = availableAfterHold.isNegative() ? Decision.DECLINED : Decision.APPROVED;
-        ledger.recordDecision(new AuthorizationDecision(authorization.authId(), authorization.accountId(),
-                authorization.amount(), decision, day, availableAfterHold));
+        ledger.recordDecision(new AuthorizationDecision(authorization.authId(), authorization.id(),
+                authorization.accountId(), authorization.amount(), decision, day, availableAfterHold));
     }
 }

@@ -10,47 +10,49 @@ import ledger.domain.Money;
 import ledger.event.Authorization;
 import ledger.event.Credit;
 import ledger.event.Debit;
-import ledger.event.Event;
 import ledger.event.Reversal;
 import ledger.event.Settlement;
+import ledger.replay.EventStream;
+import ledger.replay.EventStream.Arrival;
 
-/** Shared test fixtures: the two accounts and the E1–E10 event stream from the spec. */
+/** Shared test fixtures: short names for the accounts and the E1 to E10 stream in {@link EventStream}. */
 public final class TestData {
 
     public static final String ACC_001 = "ACC-001";
     public static final String ACC_002 = "ACC-002";
-    public static final List<Account> ACCOUNTS = List.of(new Account(ACC_001, AED), new Account(ACC_002, BHD));
+    public static final List<Account> ACCOUNTS = EventStream.ACCOUNTS;
 
-    public static final Credit E1 = new Credit("E1", 1, ACC_001, aed("1200.00"), 1);
-    public static final Debit E2 = new Debit("E2", 1, ACC_001, aed("950.00"), 1);
-    public static final Authorization E3 = new Authorization("E3", 2, ACC_001, "Auth-A", aed("200.00"), 2);
-    public static final Credit E4 = new Credit("E4", 3, ACC_001, aed("400.00"), 3);
-    public static final Settlement E5 = new Settlement("E5", 4, ACC_001, "Auth-A", aed("185.00"), 4);
-    public static final Settlement E6 = new Settlement("E6", 4, ACC_001, "Auth-Z", aed("180.00"), 4);
-    public static final Debit E7 = new Debit("E7", 5, ACC_001, aed("620.00"), 2);
-    public static final Authorization E8 = new Authorization("E8", 5, ACC_001, "Auth-B", aed("90.00"), 5);
-    public static final Reversal E9 = new Reversal("E9", 6, ACC_001, "E7");
-    public static final Credit E10 = new Credit("E10", 5, ACC_002, bhd("10.000"), 5, 3);
-
-    /** The stream in the listed order, each with the day it is processed. E10 arrives on Day 6. */
-    public static final List<Arrival> STREAM = List.of(
-            new Arrival(1, E1), new Arrival(1, E2), new Arrival(2, E3), new Arrival(3, E4),
-            new Arrival(4, E5), new Arrival(4, E6), new Arrival(5, E7), new Arrival(5, E8),
-            new Arrival(6, E9), new Arrival(6, E10));
-
-    public record Arrival(int day, Event event) {
-    }
+    public static final Credit E1 = EventStream.E1;
+    public static final Debit E2 = EventStream.E2;
+    public static final Authorization E3 = EventStream.E3;
+    public static final Credit E4 = EventStream.E4;
+    public static final Settlement E5 = EventStream.E5;
+    public static final Settlement E6 = EventStream.E6;
+    public static final Debit E7 = EventStream.E7;
+    public static final Authorization E8 = EventStream.E8;
+    public static final Reversal E9 = EventStream.E9;
+    public static final Credit E10 = EventStream.E10;
 
     private TestData() {
     }
 
+    /** A ledger with ACC-001 (AED) and ACC-002 (BHD), both at zero. */
+    public static Ledger newLedger() {
+        return new Ledger(ACCOUNTS);
+    }
+
+    /** The fully wired setup over ACC-001 and ACC-002. */
+    public static LedgerSetup newSetup() {
+        return LedgerSetup.create(ACCOUNTS);
+    }
+
     /**
      * Replays the stream up to and including {@code lastDay}, closing each day after its events.
-     * Does not capitalize interest.
+     * Unlike {@link ledger.replay.Replay}, it does not capitalize interest or print anything.
      */
     public static void replayStream(LedgerSetup setup, int lastDay) {
         int day = 1;
-        for (Arrival arrival : STREAM) {
+        for (Arrival arrival : EventStream.ARRIVALS) {
             if (arrival.day() > lastDay) {
                 break;
             }
@@ -62,16 +64,6 @@ public final class TestData {
         for (; day <= lastDay; day++) {
             setup.close().close(day);
         }
-    }
-
-    /** A ledger with ACC-001 (AED) and ACC-002 (BHD), both at zero. */
-    public static Ledger newLedger() {
-        return new Ledger(ACCOUNTS);
-    }
-
-    /** The fully wired setup over ACC-001 and ACC-002. */
-    public static LedgerSetup newSetup() {
-        return LedgerSetup.create(ACCOUNTS);
     }
 
     public static Money aed(String amount) {
