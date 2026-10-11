@@ -1,0 +1,30 @@
+name: Run replay
+
+# Started by hand from the Actions tab ("Run workflow"). Prints the daily report for Days 1 to 6
+# in the log and on the run's summary page.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Run the replay
+        shell: bash
+        run: mvn -B -q compile exec:java | tee replay.txt
+      - name: Add the report to the run summary
+        shell: bash
+        run: |
+          {
+            echo "## Daily report: E1 to E10, Days 1 to 6"
+            echo '```'
+            cat replay.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

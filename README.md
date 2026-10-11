@@ -48,6 +48,18 @@ Run from the repository root.
 
 The first run downloads JUnit and the Maven plugins, so it needs network access.
 
+### Running with Docker
+
+No local JDK or Maven needed, only Docker (with Compose). From the repository root:
+
+| What | Command |
+|---|---|
+| Run the app (daily report) | `docker compose run --rm replay` |
+| Run all tests | `docker compose run --rm tests` |
+| Run the intentionally failing test | `docker compose run --rm failing-test` |
+
+The first command builds the image (`maven:3.9.9-eclipse-temurin-17`), which compiles the code and runs the tests once, so the image only builds if they pass; later runs reuse it. After changing the code, rebuild with `docker compose build`. Run the services one at a time with `run`: `docker compose up` would start all three together and interleave their output.
+
 ### The intentionally failing test
 
 `src/test/java/ledger/core/DesignLimitationTest.java` fails on purpose: it states an expectation this design does not meet, with inline comments explaining what it reveals. It is tagged `design-limitation` and excluded from `mvn test` (and from the Build and test workflow) by the `excludedTestGroups` property in `pom.xml`.
@@ -86,6 +98,8 @@ Two GitHub Actions workflows run on JDK 17 for every push and pull request:
 - **Intentionally failing test** ([design-limitation.yml](.github/workflows/design-limitation.yml)) runs `DesignLimitationTest` on its own and passes only while that test still fails. Green means the design limitation is still demonstrated (the failure and its explanation are in the run's log); red means the test started passing and needs looking at. This keeps every commit's status green without hiding the failure.
 
 The badges at the top show the latest result of each.
+
+A third workflow, **Run replay** ([replay.yml](.github/workflows/replay.yml)), only runs when started by hand: on GitHub, open the **Actions** tab, choose **Run replay** and click **Run workflow**. It prints the daily report for Days 1 to 6 in the run's log and on the run's summary page.
 
 ## Code structure
 

@@ -1,0 +1,16 @@
+# One image, three ways to use it. Run one at a time, e.g. `docker compose run --rm replay`.
+services:
+  replay:
+    image: in-memory-account-ledger
+    build: .
+    command: ["mvn", "-B", "-q", "exec:java"]
+
+  tests:
+    image: in-memory-account-ledger
+    build: .
+    command: ["mvn", "-B", "test"]
+
+  failing-test:
+    image: in-memory-account-ledger
+    build: .
+    command: ["mvn", "-B", "test", "-Dtest=DesignLimitationTest", "-DexcludedTestGroups="]
