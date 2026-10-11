@@ -26,3 +26,4 @@ Times are local (UTC+04).
 - 16:19 Added the intentionally failing test: a day negative only because of earlier fees is still charged, so one repaid overdraft gets four fees. Excluded from the default build and CI by tag, with a separate command to run it; documented in README and AMBIGUITIES.md.
 - 16:23 Added a separate GitHub Actions workflow that runs the intentionally failing test and passes only while it still fails. Documented how to run it locally.
 - 16:28 Added a Dockerfile and docker-compose.yml (replay, tests, failing test; verified locally, output identical to a local run) and a manually started GitHub Actions workflow that prints the daily report on the run's summary page.
+- 16:31 Changed the intentionally failing test's workflow to run the test plainly, so it fails on every run as the test does locally, instead of passing while the test fails.

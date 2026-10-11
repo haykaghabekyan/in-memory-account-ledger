@@ -84,18 +84,12 @@ To run it locally:
 
 4. To run it together with all other tests: `mvn test -DexcludedTestGroups=` (60 tests, 1 failure).
 
-To run the same check as the workflow (succeeds only if the test fails):
-
-```
-if mvn -B test -Dtest=DesignLimitationTest -DexcludedTestGroups=; then echo "UNEXPECTED: the test passed"; else echo "OK: the test failed as intended"; fi
-```
-
 ### Continuous integration
 
 Two GitHub Actions workflows run on JDK 17 for every push and pull request:
 
 - **Build and test** ([ci.yml](.github/workflows/ci.yml)) builds and tests the project (`mvn -B verify`, which skips the intentionally failing test), then runs the app (`mvn -B -q exec:java`), so the daily report can be read in the run's log without cloning the repository.
-- **Intentionally failing test** ([design-limitation.yml](.github/workflows/design-limitation.yml)) runs `DesignLimitationTest` on its own and passes only while that test still fails. Green means the design limitation is still demonstrated (the failure and its explanation are in the run's log); red means the test started passing and needs looking at. This keeps every commit's status green without hiding the failure.
+- **Intentionally failing test** ([design-limitation.yml](.github/workflows/design-limitation.yml)) runs `DesignLimitationTest` on its own, with the same command as running it locally. **It fails on every run, by design**: its badge is red and its log shows the assertion failure. Because GitHub combines all workflow results into one status per commit, commits show a red cross for this reason alone. Build and test is the workflow that shows whether the code builds and its tests pass.
 
 The badges at the top show the latest result of each.
 
