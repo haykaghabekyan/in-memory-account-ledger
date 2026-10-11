@@ -8,19 +8,17 @@ import java.util.Map;
 import java.util.Optional;
 import ledger.domain.Account;
 import ledger.domain.AuthorizationDecision;
-import ledger.domain.Decision;
 import ledger.domain.Entry;
-import ledger.domain.EntryType;
 import ledger.domain.Money;
 import ledger.domain.ProcessingError;
 import ledger.event.Event;
-import ledger.event.Settlement;
 
 /**
  * The in-memory store: accounts and four append-only lists (entries, the event log, errors,
  * authorization decisions).
  * Nothing is ever changed or removed, and the lists are handed out only as read-only copies.
- * It holds no business rules beyond that; those live in the event handlers.
+ * It holds no business rules; those live in the event handlers, {@link Authorizations} and
+ * {@link EndOfDayClose}.
  */
 public class Ledger {
 
@@ -94,37 +92,6 @@ public class Ledger {
             }
         }
         return balance;
-    }
-
-    /** The decision on an authorization, if one was made. */
-    public Optional<AuthorizationDecision> decision(String authId) {
-        return decisions.stream().filter(decision -> decision.authId().equals(authId)).findFirst();
-    }
-
-    /** Whether a settlement entry has been posted for this authorization. */
-    public boolean isSettled(String authId) {
-        return entries.stream()
-                .filter(entry -> entry.type() == EntryType.SETTLEMENT)
-                .map(entry -> event(entry.sourceEventId()).orElseThrow())
-                .anyMatch(event -> event instanceof Settlement settlement && settlement.authId().equals(authId));
-    }
-
-    /** The total of approved authorizations on the account that are not settled yet. */
-    public Money activeHolds(String accountId) {
-        Money total = Money.zero(account(accountId).currency());
-        for (AuthorizationDecision decision : decisions) {
-            if (decision.accountId().equals(accountId)
-                    && decision.decision() == Decision.APPROVED
-                    && !isSettled(decision.authId())) {
-                total = total.plus(decision.amount());
-            }
-        }
-        return total;
-    }
-
-    /** Ledger balance minus active holds, with everything processed so far up to the given day. */
-    public Money available(String accountId, int day) {
-        return balance(accountId, day, day).minus(activeHolds(accountId));
     }
 
     public List<Entry> entries() {

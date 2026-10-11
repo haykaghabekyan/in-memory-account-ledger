@@ -9,11 +9,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-import ledger.core.handler.AuthorizationHandler;
-import ledger.core.handler.CreditHandler;
-import ledger.core.handler.DebitHandler;
-import ledger.core.handler.ReversalHandler;
-import ledger.core.handler.SettlementHandler;
 import ledger.domain.Account;
 import ledger.domain.ProcessingError;
 import ledger.event.Event;
@@ -35,16 +30,6 @@ public class EventProcessor {
             }
         }
         requireHandlerForEveryEventType();
-    }
-
-    /** A processor with the standard handler for every event type. */
-    public static EventProcessor withStandardHandlers(Ledger ledger) {
-        return new EventProcessor(ledger, List.of(
-                new CreditHandler(ledger),
-                new DebitHandler(ledger),
-                new AuthorizationHandler(ledger),
-                new SettlementHandler(ledger),
-                new ReversalHandler(ledger)));
     }
 
     /**

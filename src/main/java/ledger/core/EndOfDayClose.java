@@ -24,8 +24,6 @@ import ledger.domain.ProcessingError;
  */
 public class EndOfDayClose {
 
-    private static final Map<Currency, Money> STANDARD_FEES = Map.of(Currency.AED, Money.of("25.00", Currency.AED));
-
     private final Ledger ledger;
     private final Map<Currency, Money> overdraftFees;
 
@@ -38,11 +36,6 @@ public class EndOfDayClose {
         });
         this.ledger = ledger;
         this.overdraftFees = Map.copyOf(overdraftFees);
-    }
-
-    /** A close with the standard fees: AED 25.00, no fee defined for BHD. */
-    public static EndOfDayClose withStandardFees(Ledger ledger) {
-        return new EndOfDayClose(ledger, STANDARD_FEES);
     }
 
     public void close(int closingDay) {

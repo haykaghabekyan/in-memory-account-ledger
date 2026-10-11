@@ -40,7 +40,7 @@ percentage, so it does not depend on how negative the balance is (Day 2 at
 a different price; nothing in the ledger depends on the value, only on it being
 positive.
 
-Fees are configured per currency (`EndOfDayClose.withStandardFees`: AED 25.00
+Fees are configured per currency (`LedgerSetup.OVERDRAFT_FEES`: AED 25.00
 only). A negative account in a currency with no fee gets an error instead of a
 fee, which is how BHD is handled (see
 [AMBIGUITIES.md](AMBIGUITIES.md#overdraft-fee-for-a-non-aed-account)). No BHD

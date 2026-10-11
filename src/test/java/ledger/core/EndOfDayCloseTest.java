@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
+import ledger.LedgerSetup;
 import ledger.domain.Entry;
 import ledger.domain.EntryType;
 import ledger.domain.ProcessingError;
@@ -23,9 +24,10 @@ class EndOfDayCloseTest {
 
     @BeforeEach
     void setUp() {
-        ledger = newLedger();
-        processor = EventProcessor.withStandardHandlers(ledger);
-        close = EndOfDayClose.withStandardFees(ledger);
+        LedgerSetup setup = newSetup();
+        ledger = setup.ledger();
+        processor = setup.processor();
+        close = setup.close();
     }
 
     @Test

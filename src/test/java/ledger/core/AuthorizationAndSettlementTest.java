@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import ledger.LedgerSetup;
 import ledger.domain.AuthorizationDecision;
 import ledger.domain.Decision;
 import ledger.domain.EntryType;
@@ -17,12 +18,15 @@ import org.junit.jupiter.api.Test;
 class AuthorizationAndSettlementTest {
 
     private Ledger ledger;
+    private Authorizations authorizations;
     private EventProcessor processor;
 
     @BeforeEach
     void setUp() {
-        ledger = newLedger();
-        processor = EventProcessor.withStandardHandlers(ledger);
+        LedgerSetup setup = newSetup();
+        ledger = setup.ledger();
+        authorizations = setup.authorizations();
+        processor = setup.processor();
         processor.process(E1, 1);
         processor.process(E2, 1);
     }
@@ -34,7 +38,7 @@ class AuthorizationAndSettlementTest {
         assertEquals(Decision.APPROVED, decision("Auth-A").decision());
         assertEquals(aed("50.00"), decision("Auth-A").availableAfterHold());
         assertEquals(aed("250.00"), ledger.balance(ACC_001, 2, 2));
-        assertEquals(aed("50.00"), ledger.available(ACC_001, 2));
+        assertEquals(aed("50.00"), authorizations.available(ACC_001, 2));
         assertTrue(ledger.entries().stream().noneMatch(entry -> entry.sourceEventId().equals("E3")));
     }
 
@@ -43,7 +47,7 @@ class AuthorizationAndSettlementTest {
         processor.process(new Authorization("A1", 2, ACC_001, "Auth-X", aed("250.00"), 2), 2);
 
         assertEquals(Decision.APPROVED, decision("Auth-X").decision());
-        assertEquals(aed("0.00"), ledger.available(ACC_001, 2));
+        assertEquals(aed("0.00"), authorizations.available(ACC_001, 2));
     }
 
     @Test
@@ -52,7 +56,7 @@ class AuthorizationAndSettlementTest {
 
         assertEquals(Decision.DECLINED, decision("Auth-X").decision());
         assertEquals(aed("-0.01"), decision("Auth-X").availableAfterHold());
-        assertEquals(aed("250.00"), ledger.available(ACC_001, 2));
+        assertEquals(aed("250.00"), authorizations.available(ACC_001, 2));
     }
 
     @Test
@@ -76,9 +80,9 @@ class AuthorizationAndSettlementTest {
 
         assertEquals(EntryType.SETTLEMENT, ledger.entries().get(3).type());
         assertEquals(aed("465.00"), ledger.balance(ACC_001, 4, 4));
-        assertTrue(ledger.isSettled("Auth-A"));
-        assertEquals(aed("0.00"), ledger.activeHolds(ACC_001));
-        assertEquals(aed("465.00"), ledger.available(ACC_001, 4));
+        assertTrue(authorizations.isSettled("Auth-A"));
+        assertEquals(aed("0.00"), authorizations.activeHolds(ACC_001));
+        assertEquals(aed("465.00"), authorizations.available(ACC_001, 4));
     }
 
     @Test
@@ -115,7 +119,7 @@ class AuthorizationAndSettlementTest {
         processor.process(E3, 2);
         processor.process(new Settlement("S1", 4, ACC_002, "Auth-A", bhd("185.000"), 4), 4);
 
-        assertFalse(ledger.isSettled("Auth-A"));
+        assertFalse(authorizations.isSettled("Auth-A"));
         assertEquals("Settlement rejected: Auth-A belongs to account ACC-001", onlyError().message());
     }
 
@@ -125,12 +129,12 @@ class AuthorizationAndSettlementTest {
         processor.process(new Authorization("A2", 3, ACC_001, "Auth-A", aed("10.00"), 3), 3);
 
         assertEquals(1, ledger.decisions().size());
-        assertEquals(aed("200.00"), ledger.activeHolds(ACC_001));
+        assertEquals(aed("200.00"), authorizations.activeHolds(ACC_001));
         assertEquals("Authorization rejected: Auth-A already exists", onlyError().message());
     }
 
     private AuthorizationDecision decision(String authId) {
-        return ledger.decision(authId).orElseThrow();
+        return authorizations.decision(authId).orElseThrow();
     }
 
     private ProcessingError onlyError() {

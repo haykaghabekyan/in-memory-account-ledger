@@ -18,6 +18,7 @@ public final class TestData {
 
     public static final String ACC_001 = "ACC-001";
     public static final String ACC_002 = "ACC-002";
+    public static final List<Account> ACCOUNTS = List.of(new Account(ACC_001, AED), new Account(ACC_002, BHD));
 
     public static final Credit E1 = new Credit("E1", 1, ACC_001, aed("1200.00"), 1);
     public static final Debit E2 = new Debit("E2", 1, ACC_001, aed("950.00"), 1);
@@ -35,7 +36,12 @@ public final class TestData {
 
     /** A ledger with ACC-001 (AED) and ACC-002 (BHD), both at zero. */
     public static Ledger newLedger() {
-        return new Ledger(List.of(new Account(ACC_001, AED), new Account(ACC_002, BHD)));
+        return new Ledger(ACCOUNTS);
+    }
+
+    /** The fully wired setup over ACC-001 and ACC-002. */
+    public static LedgerSetup newSetup() {
+        return LedgerSetup.create(ACCOUNTS);
     }
 
     public static Money aed(String amount) {

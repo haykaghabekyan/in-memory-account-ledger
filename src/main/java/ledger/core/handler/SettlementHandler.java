@@ -1,6 +1,7 @@
 package ledger.core.handler;
 
 import java.util.Optional;
+import ledger.core.Authorizations;
 import ledger.core.EventHandler;
 import ledger.core.Ledger;
 import ledger.domain.Account;
@@ -18,9 +19,11 @@ import ledger.event.Settlement;
 public class SettlementHandler implements EventHandler<Settlement> {
 
     private final Ledger ledger;
+    private final Authorizations authorizations;
 
-    public SettlementHandler(Ledger ledger) {
+    public SettlementHandler(Ledger ledger, Authorizations authorizations) {
         this.ledger = ledger;
+        this.authorizations = authorizations;
     }
 
     @Override
@@ -49,7 +52,7 @@ public class SettlementHandler implements EventHandler<Settlement> {
     /** Why the settlement cannot be applied, or empty if it can. */
     private Optional<String> problemWith(Settlement settlement) {
         String authId = settlement.authId();
-        Optional<AuthorizationDecision> decision = ledger.decision(authId);
+        Optional<AuthorizationDecision> decision = authorizations.decision(authId);
         if (decision.isEmpty()) {
             return Optional.of("no authorization " + authId);
         }
@@ -59,7 +62,7 @@ public class SettlementHandler implements EventHandler<Settlement> {
         if (decision.get().decision() == Decision.DECLINED) {
             return Optional.of(authId + " was declined");
         }
-        if (ledger.isSettled(authId)) {
+        if (authorizations.isSettled(authId)) {
             return Optional.of(authId + " is already settled");
         }
         return Optional.empty();

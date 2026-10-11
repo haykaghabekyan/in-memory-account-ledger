@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import ledger.LedgerSetup;
 import ledger.core.handler.CreditHandler;
 import ledger.domain.Entry;
 import ledger.domain.EntryType;
@@ -24,8 +25,9 @@ class EventProcessorTest {
 
     @BeforeEach
     void setUp() {
-        ledger = newLedger();
-        processor = EventProcessor.withStandardHandlers(ledger);
+        LedgerSetup setup = newSetup();
+        ledger = setup.ledger();
+        processor = setup.processor();
     }
 
     @Test

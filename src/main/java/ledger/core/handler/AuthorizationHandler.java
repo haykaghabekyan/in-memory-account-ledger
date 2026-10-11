@@ -1,5 +1,6 @@
 package ledger.core.handler;
 
+import ledger.core.Authorizations;
 import ledger.core.EventHandler;
 import ledger.core.Ledger;
 import ledger.domain.Account;
@@ -17,9 +18,11 @@ import ledger.event.Authorization;
 public class AuthorizationHandler implements EventHandler<Authorization> {
 
     private final Ledger ledger;
+    private final Authorizations authorizations;
 
-    public AuthorizationHandler(Ledger ledger) {
+    public AuthorizationHandler(Ledger ledger, Authorizations authorizations) {
         this.ledger = ledger;
+        this.authorizations = authorizations;
     }
 
     @Override
@@ -34,12 +37,12 @@ public class AuthorizationHandler implements EventHandler<Authorization> {
 
     @Override
     public void handle(Authorization authorization, int day) {
-        if (ledger.decision(authorization.authId()).isPresent()) {
+        if (authorizations.decision(authorization.authId()).isPresent()) {
             ledger.recordError(new ProcessingError(day, authorization.id(), authorization.accountId(),
                     "Authorization rejected: " + authorization.authId() + " already exists"));
             return;
         }
-        Money availableAfterHold = ledger.available(authorization.accountId(), day).minus(authorization.amount());
+        Money availableAfterHold = authorizations.available(authorization.accountId(), day).minus(authorization.amount());
         Decision decision = availableAfterHold.isNegative() ? Decision.DECLINED : Decision.APPROVED;
         ledger.recordDecision(new AuthorizationDecision(authorization.authId(), authorization.accountId(),
                 authorization.amount(), decision, day, availableAfterHold));
