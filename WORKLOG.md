@@ -28,3 +28,4 @@ Times are local (UTC+04).
 - 16:28 Added a Dockerfile and docker-compose.yml (replay, tests, failing test; verified locally, output identical to a local run) and a manually started GitHub Actions workflow that prints the daily report on the run's summary page.
 - 16:31 Changed the intentionally failing test's workflow to run the test plainly, so it fails on every run as the test does locally, instead of passing while the test fails.
 - 17:02 Recorded the approaches abandoned mid-build in REJECTED.md and checked every number in the docs against the replay output; all match.
+- 17:09 Wrote ARCHITECTURE.md (append-only at scale, value-dated entries in production, authorization lifecycle, what was cut) and exported it to a 3-page PDF for submission.

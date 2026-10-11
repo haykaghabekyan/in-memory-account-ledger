@@ -1,6 +1,5 @@
 target/
 .git/
 .github/
-.claude/
 .idea/
 .DS_Store

@@ -185,3 +185,4 @@ Day 5 closes at -230.00: E7 (620.00, value Day 2) was posted that day, so the Da
 - [AMBIGUITIES.md](AMBIGUITIES.md): ambiguities found and how they were resolved
 - [REJECTED.md](REJECTED.md): assessment of every acceptance criterion (refused and accepted), plus approaches abandoned mid-build
 - [WORKLOG.md](WORKLOG.md): timestamped work log
+- [ARCHITECTURE.md](ARCHITECTURE.md): architecture and trade-offs (scale, value dating in production, authorization lifecycle, what was cut); submitted separately as a PDF
