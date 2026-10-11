@@ -42,8 +42,16 @@ Run from the repository root.
 | Run one test class | `mvn test -Dtest=ClassName` |
 | Run one test method | `mvn test -Dtest=ClassName#methodName` |
 | Run the app | `mvn -q compile exec:java` |
+| Run the intentionally failing test | `mvn test -Dtest=DesignLimitationTest -DexcludedTestGroups=` |
+| Run every test including it | `mvn test -DexcludedTestGroups=` |
 
 The first run downloads JUnit and the Maven plugins, so it needs network access.
+
+### The intentionally failing test
+
+`src/test/java/ledger/core/DesignLimitationTest.java` fails on purpose: it states an expectation this design does not meet, with inline comments explaining what it reveals. It is tagged `design-limitation` and excluded from `mvn test` (and so from CI) by the `excludedTestGroups` property in `pom.xml`; the commands above switch the exclusion off.
+
+The test: an account goes 10.00 overdrawn on Day 1 and the customer pays it back on Day 2. It expects one fee. The ledger charges four (Days 1 to 4, 100.00 in total), because each day's fee is decided on a balance that includes earlier days' fees, as the spec's balance definition requires, so the bank's own fee keeps the account negative and generates the next fee. The fix (decide fees excluding all fees) would not change the E1 to E10 replay, but it would depart from the spec's stated rule, so it is kept as a known limitation.
 
 ### Continuous integration
 

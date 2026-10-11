@@ -20,6 +20,11 @@ A fee lowers every later day's balance, which can create or remove later fees.
 Resolution: days are evaluated oldest first. A day's fee is decided on its
 closing balance including earlier days' fees but excluding its own fee
 (otherwise a fee could justify itself).
+Consequence: fees can generate further fees. A day that is negative only
+because of earlier fees is charged too, so one short overdraft keeps charging
+daily with no customer activity. This follows the spec's balance definition
+(all entries, fees included) and is shown by the intentionally failing test,
+`DesignLimitationTest` (see README).
 
 ### Settlement amount differs from the hold
 

@@ -11,6 +11,9 @@
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- The intentionally failing test is tagged design-limitation and excluded by default.
+             Run it with: mvn test -Dtest=DesignLimitationTest -DexcludedTestGroups= -->
+        <excludedTestGroups>design-limitation</excludedTestGroups>
     </properties>
 
     <dependencies>
@@ -28,6 +31,9 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.2</version>
+                <configuration>
+                    <excludedGroups>${excludedTestGroups}</excludedGroups>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
