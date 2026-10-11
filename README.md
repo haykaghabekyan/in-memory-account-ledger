@@ -1,6 +1,6 @@
 # In-Memory Account Ledger
 
-[![Tests](https://github.com/haykaghabekyan/in-memory-account-ledger/actions/workflows/test.yml/badge.svg)](https://github.com/haykaghabekyan/in-memory-account-ledger/actions/workflows/test.yml)
+[![Build and test](https://github.com/haykaghabekyan/in-memory-account-ledger/actions/workflows/ci.yml/badge.svg)](https://github.com/haykaghabekyan/in-memory-account-ledger/actions/workflows/ci.yml)
 
 An in-memory account ledger core. The full spec is in [TASK.md](TASK.md).
 
@@ -47,7 +47,7 @@ The first run downloads JUnit and the Maven plugins, so it needs network access.
 
 ### Continuous integration
 
-GitHub Actions runs `mvn -B test` on JDK 17 for every push and pull request ([workflow](.github/workflows/test.yml)). The badge at the top shows the latest result.
+GitHub Actions runs on JDK 17 for every push and pull request ([workflow](.github/workflows/ci.yml)). It builds and tests the project (`mvn -B verify`), then runs the app (`mvn -B -q exec:java`), so the app's output can be read in the run's log without cloning the repository. The badge at the top shows the latest result.
 
 ## Code structure
 
