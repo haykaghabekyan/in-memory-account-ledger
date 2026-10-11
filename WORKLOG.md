@@ -27,3 +27,4 @@ Times are local (UTC+04).
 - 16:23 Added a separate GitHub Actions workflow that runs the intentionally failing test and passes only while it still fails. Documented how to run it locally.
 - 16:28 Added a Dockerfile and docker-compose.yml (replay, tests, failing test; verified locally, output identical to a local run) and a manually started GitHub Actions workflow that prints the daily report on the run's summary page.
 - 16:31 Changed the intentionally failing test's workflow to run the test plainly, so it fails on every run as the test does locally, instead of passing while the test fails.
+- 17:02 Recorded the approaches abandoned mid-build in REJECTED.md and checked every number in the docs against the replay output; all match.

@@ -84,3 +84,57 @@ condition is never met.
 See AMBIGUITIES.md: "Are authorization decisions revisited?"
 
 ## Approaches abandoned mid-build
+
+Approaches that were built (or tried in code) and then replaced, with the
+reason. The final design is described in README.md.
+
+### Event dispatch as a chain of type checks
+
+The first ledger processed events with `if (event instanceof Credit) … else if
+(event instanceof Debit) …` inside the ledger itself. It worked for credits,
+debits and reversals, but every new event type meant editing that method, and
+the ledger mixed storage with every event's rules. Replaced before
+authorizations were added: `EventProcessor` runs the steps every event shares
+(validate, log, duplicate check) and hands each event to one handler class per
+type. A missing handler is caught when the processor is created.
+
+### Wiring and hold rules inside the classes that use them
+
+`EventProcessor` first had a factory method that created every concrete
+handler, so a new event type still meant editing it, and the ledger answered
+"is this hold active?" and "what is available?", which are business rules, not
+storage. Replaced by a composition root (`LedgerSetup`, which also holds the
+fee and interest rate configuration) and an `Authorizations` class for hold
+queries. `Ledger` went back to storing records and summing balances.
+
+### A separate index for duplicate detection
+
+Duplicate events were first detected with a map from event id to event, kept
+next to the event log. It held the same facts as the log, so the two could
+drift apart. Replaced by looking the id up in the event log itself.
+
+### Splitting an amount with two roundings
+
+The first instalment split divided to 16 significant digits and then rounded
+that to the currency's precision. Two roundings in a row can, in rare cases,
+give a different result from one, and it was harder to explain. Replaced by a
+single division straight to the currency's precision, half up.
+
+### Deciding fees on the balance excluding all fees
+
+Tried in code after the intentionally failing test was written: deciding each
+day's fee on the balance without any fees removes the fee spiral (that test
+passes, and the E1 to E10 replay output is unchanged). Not adopted, because the
+spec's non-negotiable rule defines the balance for the fee test as all entries
+with value date up to that day, which includes fees. The current rule follows
+the spec, and the failing test documents its cost.
+See AMBIGUITIES.md: "How is a day's fee decided when fees change later
+balances?"
+
+### A workflow that passes while the failing test fails
+
+The intentionally failing test first ran in a workflow that inverted its
+result (green while the test failed), to keep every commit's status green.
+Green for a failing test was confusing, so the workflow now runs the test
+plainly and fails, as it does locally. The cost is a red cross on every
+commit, explained in README.md.
