@@ -10,6 +10,7 @@ import ledger.domain.Money;
 import ledger.event.Authorization;
 import ledger.event.Credit;
 import ledger.event.Debit;
+import ledger.event.Event;
 import ledger.event.Reversal;
 import ledger.event.Settlement;
 
@@ -31,7 +32,36 @@ public final class TestData {
     public static final Reversal E9 = new Reversal("E9", 6, ACC_001, "E7");
     public static final Credit E10 = new Credit("E10", 5, ACC_002, bhd("10.000"), 5, 3);
 
+    /** The stream in the listed order, each with the day it is processed. E10 arrives on Day 6. */
+    public static final List<Arrival> STREAM = List.of(
+            new Arrival(1, E1), new Arrival(1, E2), new Arrival(2, E3), new Arrival(3, E4),
+            new Arrival(4, E5), new Arrival(4, E6), new Arrival(5, E7), new Arrival(5, E8),
+            new Arrival(6, E9), new Arrival(6, E10));
+
+    public record Arrival(int day, Event event) {
+    }
+
     private TestData() {
+    }
+
+    /**
+     * Replays the stream up to and including {@code lastDay}, closing each day after its events.
+     * Does not capitalize interest.
+     */
+    public static void replayStream(LedgerSetup setup, int lastDay) {
+        int day = 1;
+        for (Arrival arrival : STREAM) {
+            if (arrival.day() > lastDay) {
+                break;
+            }
+            for (; day < arrival.day(); day++) {
+                setup.close().close(day);
+            }
+            setup.processor().process(arrival.event(), arrival.day());
+        }
+        for (; day <= lastDay; day++) {
+            setup.close().close(day);
+        }
     }
 
     /** A ledger with ACC-001 (AED) and ACC-002 (BHD), both at zero. */

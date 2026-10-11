@@ -243,3 +243,15 @@ authorization id that already exists (under a different event id).
 Resolution: it is rejected and reported, and no decision is recorded.
 Otherwise a later settlement could not tell which authorization it settles.
 An exact repeat of the same event is already handled as a duplicate event.
+
+### Interest details the spec leaves open
+
+The spec fixes the rate and that accruals capitalize at the end of Day 6, but
+not these details:
+- Days with no interest: a memo accrual of zero is still recorded for every
+  day, so the report shows all six days. A zero or negative balance accrues
+  nothing, and the rounding carry passes through that day unchanged.
+- An account that earned nothing gets no interest entry rather than a zero
+  credit.
+- Capitalization runs once per window. Running it again is refused instead of
+  ignored: unlike the fee close, a second run would pay the interest twice.

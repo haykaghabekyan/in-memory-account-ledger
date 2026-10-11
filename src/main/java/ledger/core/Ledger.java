@@ -9,13 +9,14 @@ import java.util.Optional;
 import ledger.domain.Account;
 import ledger.domain.AuthorizationDecision;
 import ledger.domain.Entry;
+import ledger.domain.InterestAccrual;
 import ledger.domain.Money;
 import ledger.domain.ProcessingError;
 import ledger.event.Event;
 
 /**
- * The in-memory store: accounts and four append-only lists (entries, the event log, errors,
- * authorization decisions).
+ * The in-memory store: accounts and five append-only lists (entries, the event log, errors,
+ * authorization decisions, interest accrual memos).
  * Nothing is ever changed or removed, and the lists are handed out only as read-only copies.
  * It holds no business rules; those live in the event handlers, {@link Authorizations} and
  * {@link EndOfDayClose}.
@@ -27,6 +28,7 @@ public class Ledger {
     private final List<ReceivedEvent> eventLog = new ArrayList<>();
     private final List<ProcessingError> errors = new ArrayList<>();
     private final List<AuthorizationDecision> decisions = new ArrayList<>();
+    private final List<InterestAccrual> accruals = new ArrayList<>();
 
     public Ledger(Collection<Account> accounts) {
         for (Account account : accounts) {
@@ -61,6 +63,10 @@ public class Ledger {
 
     public void recordDecision(AuthorizationDecision decision) {
         decisions.add(decision);
+    }
+
+    public void recordAccrual(InterestAccrual accrual) {
+        accruals.add(accrual);
     }
 
     /** The first event received with this id, if any. */
@@ -108,5 +114,9 @@ public class Ledger {
 
     public List<AuthorizationDecision> decisions() {
         return List.copyOf(decisions);
+    }
+
+    public List<InterestAccrual> accruals() {
+        return List.copyOf(accruals);
     }
 }

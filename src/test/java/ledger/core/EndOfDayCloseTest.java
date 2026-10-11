@@ -18,21 +18,29 @@ import org.junit.jupiter.api.Test;
 
 class EndOfDayCloseTest {
 
+    private LedgerSetup setup;
     private Ledger ledger;
     private EventProcessor processor;
     private EndOfDayClose close;
 
     @BeforeEach
     void setUp() {
-        LedgerSetup setup = newSetup();
+        setup = newSetup();
         ledger = setup.ledger();
         processor = setup.processor();
         close = setup.close();
     }
 
     @Test
+    void noFeesBeforeDayFive() {
+        replayStream(setup, 4);
+
+        assertEquals(List.of(), ids(EntryType.FEE));
+    }
+
+    @Test
     void dayFiveCloseChargesFeesForDaysTwoFourAndFive() {
-        replayStreamToDayFive();
+        replayStream(setup, 5);
 
         assertEquals(List.of("FEE-ACC-001-D2-1", "FEE-ACC-001-D4-1", "FEE-ACC-001-D5-1"), ids(EntryType.FEE));
         assertEquals(aed("250.00"), ledger.balance(ACC_001, 1, 5));
@@ -44,7 +52,7 @@ class EndOfDayCloseTest {
 
     @Test
     void feeIsValueDatedToItsDayAndBookedOnTheClosingDay() {
-        replayStreamToDayFive();
+        replayStream(setup, 5);
 
         Entry fee = ledger.entries().stream().filter(entry -> entry.type() == EntryType.FEE).findFirst().orElseThrow();
         assertEquals(aed("-25.00"), fee.amount());
@@ -55,9 +63,7 @@ class EndOfDayCloseTest {
 
     @Test
     void dayStoppingBeingNegativeGetsItsFeeRefunded() {
-        replayStreamToDayFive();
-        processor.process(E9, 6);
-        close.close(6);
+        replayStream(setup, 6);
 
         assertEquals(List.of("FEE-REV-ACC-001-D2-1", "FEE-REV-ACC-001-D4-1", "FEE-REV-ACC-001-D5-1"),
                 ids(EntryType.FEE_REVERSAL));
@@ -117,29 +123,11 @@ class EndOfDayCloseTest {
 
     @Test
     void runningTheSameCloseTwiceChangesNothing() {
-        replayStreamToDayFive();
+        replayStream(setup, 5);
         List<Entry> before = ledger.entries();
         close.close(5);
 
         assertEquals(before, ledger.entries());
-    }
-
-    /** E1–E8 from the stream, closing each day after its events. */
-    private void replayStreamToDayFive() {
-        processor.process(E1, 1);
-        processor.process(E2, 1);
-        close.close(1);
-        processor.process(E3, 2);
-        close.close(2);
-        processor.process(E4, 3);
-        close.close(3);
-        processor.process(E5, 4);
-        processor.process(E6, 4);
-        close.close(4);
-        assertEquals(List.of(), ids(EntryType.FEE), "no fees before Day 5");
-        processor.process(E7, 5);
-        processor.process(E8, 5);
-        close.close(5);
     }
 
     private List<String> ids(EntryType type) {

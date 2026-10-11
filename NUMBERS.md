@@ -45,3 +45,16 @@ only). A negative account in a currency with no fee gets an error instead of a
 fee, which is how BHD is handled (see
 [AMBIGUITIES.md](AMBIGUITIES.md#overdraft-fee-for-a-non-aed-account)). No BHD
 amount is invented, and none is derived from an exchange rate.
+
+## Daily interest rate: 0.04% (0.0004)
+
+Given by the spec, per day, on the closing ledger balance, positive balances
+only. It is stored as the exact decimal `0.0004` (`LedgerSetup.DAILY_INTEREST_RATE`,
+built from the string "0.0004", never a binary floating-point number), so
+465.00 × 0.0004 is exactly 0.186. Like the fee, the value is a price: half of
+it (0.02%) would halve every accrual, and no logic depends on the value, only
+on it being positive. The same rate is applied to AED and BHD because the spec
+gives one rate (see
+[AMBIGUITIES.md](AMBIGUITIES.md#overdraft-fee-for-a-non-aed-account)).
+Per year it is roughly 14.6% simple (0.04% × 365), which is high for a deposit
+rate, but the window is six days and the spec fixes it.
