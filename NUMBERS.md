@@ -29,5 +29,5 @@ stored by mistake.
 ## Rounding mode
 
 Half up (`RoundingMode.HALF_UP`): 0.185 → 0.19, 0.1849 → 0.18. The reasoning is
-in [AMBIGUITIES.md](AMBIGUITIES.md#rounding-mode). All rounding goes through
-one method, `Money.rounded`, so the mode is defined in a single place.
+in [AMBIGUITIES.md](AMBIGUITIES.md#rounding-mode). Every rounding in the code uses
+one constant, `Money.ROUNDING`, so the mode is defined in a single place.

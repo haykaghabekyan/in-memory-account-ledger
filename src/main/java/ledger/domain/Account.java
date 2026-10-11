@@ -9,4 +9,11 @@ public record Account(String id, Currency currency) {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(currency, "currency");
     }
+
+    /** Throws if the amount is not in this account's currency. */
+    public void requireCurrencyOf(Money amount) {
+        if (amount.currency() != currency) {
+            throw new IllegalArgumentException("Account " + id + " is in " + currency + ", not " + amount.currency());
+        }
+    }
 }

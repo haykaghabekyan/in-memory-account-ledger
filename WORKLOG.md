@@ -16,3 +16,5 @@ Times are local (UTC+04).
 - 14:23 Added the domain types (currency, money, account, entry, authorization decision, error, interest accrual) with tests for money precision and rounding. Documented precision and rounding in NUMBERS.md.
 - 14:35 Added the input event types (credit, debit, authorization, settlement, reversal) behind a sealed interface, with validation tests.
 - 14:42 Added a GitHub Actions workflow that runs the tests on every push and pull request.
+- 14:53 Added the ledger core: append-only entries and event log, credits (with instalments), debits, reversals, value-dated balances as known at a given day, and duplicate-event handling. Recorded duplicate events and failed reversals in AMBIGUITIES.md.
+- 15:00 Split the ledger core by responsibility before adding more event types: the ledger as a store, an event processor for the shared steps, and one handler per event type (Strategy) instead of a type-check chain.

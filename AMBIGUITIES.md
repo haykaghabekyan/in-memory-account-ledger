@@ -193,3 +193,28 @@ value date (Day 5). It is reported in the Day 6 output, where it was actually
 processed, marked as booked on Day 5. The Day 6 close re-evaluates Day 5 for
 ACC-002, so E10 counts towards Day 5's balance and interest (BHD 0.004 for
 Day 5). Fees are unaffected because ACC-002 stays positive.
+
+### Duplicate events
+
+The spec does not say what happens if the same event arrives twice. The stream
+has none, but in practice retries and redelivered messages are common, and
+processing a debit twice would take the money twice.
+Resolution: the event id is the idempotency key. An event whose id was already
+processed posts nothing:
+- same id and same details: a retry; ignored and reported ("Duplicate of E7,
+  ignored"), so the outcome is the same as processing it once;
+- same id, different details: a conflict, not a retry; rejected and reported
+  ("E7 already processed with different details, rejected").
+Every arrival, duplicates included, is still kept in the event log for audit.
+A real API would usually take a separate client-supplied idempotency key; here
+the event id already identifies the business event.
+
+### Reversals that cannot be applied
+
+The spec has one reversal (E9 reverses E7) and does not say what happens to a
+reversal that cannot be applied.
+Resolution: the reversal is rejected (no entry) and reported as an error when
+the original event is unknown, belongs to a different account, posted no
+entries (e.g. an authorization), or is already reversed. The last case stops a
+reversal from being applied twice. A reversal cancels every entry the original
+posted, each on that entry's own value date.

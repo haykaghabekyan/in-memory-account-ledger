@@ -58,19 +58,34 @@ Domain types live in `src/main/java/ledger/domain`:
 | `Currency` | AED (2 dp) and BHD (3 dp); the precision lives with the currency |
 | `Money` | an exact signed amount in one currency, always at that currency's precision; refuses to mix currencies |
 | `Account` | an account id and its currency |
-| `Entry`, `EntryType` | one immutable ledger line: signed amount, value day, booked day, and the event that caused it (none for fees and interest) |
+| `Entry`, `EntryType` | one immutable ledger line: signed amount, value day, booked day, posted day, the event that caused it (none for fees and interest), and the entry it reverses (if any) |
 | `AuthorizationDecision`, `Decision` | the final approve/decline decision for an authorization |
 | `ProcessingError` | something refused or not possible, kept for the report |
 | `InterestAccrual` | a memo record of one day's rounded interest; not a ledger entry |
 
 Input events live in `src/main/java/ledger/event`. `Event` is a sealed interface (`id`, `bookedDay`, `accountId`) implemented by one record per event type: `Credit`, `Debit`, `Authorization`, `Settlement`, `Reversal`. Sealing means the compiler knows the complete list of event types. Event amounts are positive as given in the stream; the sign is applied when an entry is posted. A `Reversal` carries only the id of the event it reverses, because its amount and value day come from the original entry.
 
+The ledger lives in `src/main/java/ledger/core`, split by responsibility:
+
+| Class | Responsibility |
+|---|---|
+| `Ledger` | the store: accounts and three append-only lists (entries, the event log of `ReceivedEvent`s, errors), handed out only as read-only copies; balance queries. No business rules. |
+| `EventProcessor` | the steps every event goes through: validate, record in the event log, check for a duplicate id, then pass it to the handler for its type |
+| `EventHandler<E>` | the interface for one event type's rules (Strategy pattern) |
+| `handler/*Handler` | one class per event type: `CreditHandler` (including instalment splits), `DebitHandler`, `ReversalHandler`. `AuthorizationHandler` and `SettlementHandler` are placeholders that are not implemented yet. |
+
+`process(event, day)` takes the current day from the caller; nothing in the ledger has a clock. `balance(account, valueDay, knownAtEndOfDay)` sums the entries with value day ≤ `valueDay` that were posted by the end of `knownAtEndOfDay`.
+
+A new event type means a new handler class; `EventProcessor` and `Ledger` do not change. Because handlers are looked up in a map, the compiler can no longer check that every event type is handled, so `EventProcessor` checks it when it is created (against the permitted subclasses of the sealed `Event`) and refuses to start if a handler is missing.
+
 Design choices in these types:
 
 - **Signed amounts.** Credits are positive and debits negative, so a balance is a plain sum with no direction logic.
-- **A `Money` type instead of bare `BigDecimal`.** Precision and same-currency checks happen in one place, and all rounding goes through `Money.rounded`.
+- **A `Money` type instead of bare `BigDecimal`.** Precision and same-currency checks happen in one place, and every rounding uses the one constant `Money.ROUNDING`.
 - **Days are plain integers** (1–6). The window is fixed, so a wrapper type would add code without preventing a real mistake.
-- **Records are immutable and nothing has a status field.** Only facts that never change are stored: entries and final authorization decisions.
+- **Records are immutable and nothing has a status field.** Only facts that never change are stored: entries and final authorization decisions. Whether an entry has been reversed is found from the entries themselves (another entry's `reversesEntryId` points at it).
+- **Posted day separate from booked day.** "As known at the end of Day Y" depends on when an entry entered the ledger. For every event except E10 the two are the same; E10 is booked on Day 5 but posted on Day 6 (see [AMBIGUITIES.md](AMBIGUITIES.md#e10-arrives-after-day-5-has-closed)).
+- **Two kinds of failure.** Invalid input (unknown account, wrong currency) throws before anything is recorded; `Ledger` also refuses an entry in the wrong currency, so a faulty handler cannot store one. A refusal under the ledger's rules (duplicate event, reversal that cannot be applied) posts nothing and is kept as a `ProcessingError` for the report.
 
 ## How to read the output
 

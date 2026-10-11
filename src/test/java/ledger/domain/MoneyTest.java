@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class MoneyTest {
@@ -50,5 +51,20 @@ class MoneyTest {
         assertFalse(zero.isPositive());
         assertTrue(Money.of("-0.01", AED).isNegative());
         assertTrue(Money.of("0.01", AED).isPositive());
+    }
+
+    @Test
+    void splitsAsEquallyAsThePrecisionAllowsAndKeepsTheTotal() {
+        assertEquals(List.of(Money.of("3.333", BHD), Money.of("3.333", BHD), Money.of("3.334", BHD)),
+                Money.of("10.000", BHD).split(3));
+        assertEquals(List.of(Money.of("0.67", AED), Money.of("0.67", AED), Money.of("0.66", AED)),
+                Money.of("2.00", AED).split(3));
+        assertEquals(List.of(Money.of("5.00", AED)), Money.of("5.00", AED).split(1));
+    }
+
+    @Test
+    void splitNeedsAtLeastOnePart() {
+        Money amount = Money.of("10.000", BHD);
+        assertThrows(IllegalArgumentException.class, () -> amount.split(0));
     }
 }
