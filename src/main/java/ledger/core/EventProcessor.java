@@ -42,8 +42,8 @@ public class EventProcessor {
         return new EventProcessor(ledger, List.of(
                 new CreditHandler(ledger),
                 new DebitHandler(ledger),
-                new AuthorizationHandler(),
-                new SettlementHandler(),
+                new AuthorizationHandler(ledger),
+                new SettlementHandler(ledger),
                 new ReversalHandler(ledger)));
     }
 

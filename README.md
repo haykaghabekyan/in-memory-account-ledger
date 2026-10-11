@@ -69,12 +69,12 @@ The ledger lives in `src/main/java/ledger/core`, split by responsibility:
 
 | Class | Responsibility |
 |---|---|
-| `Ledger` | the store: accounts and three append-only lists (entries, the event log of `ReceivedEvent`s, errors), handed out only as read-only copies; balance queries. No business rules. |
+| `Ledger` | the store: accounts and four append-only lists (entries, the event log of `ReceivedEvent`s, errors, authorization decisions), handed out only as read-only copies; balance, active-hold and available-balance queries. No business rules. |
 | `EventProcessor` | the steps every event goes through: validate, record in the event log, check for a duplicate id, then pass it to the handler for its type |
 | `EventHandler<E>` | the interface for one event type's rules (Strategy pattern) |
-| `handler/*Handler` | one class per event type: `CreditHandler` (including instalment splits), `DebitHandler`, `ReversalHandler`. `AuthorizationHandler` and `SettlementHandler` are placeholders that are not implemented yet. |
+| `handler/*Handler` | one class per event type: `CreditHandler` (including instalment splits), `DebitHandler`, `ReversalHandler`, `AuthorizationHandler` (approve or decline), `SettlementHandler` (debit and release the hold) |
 
-`process(event, day)` takes the current day from the caller; nothing in the ledger has a clock. `balance(account, valueDay, knownAtEndOfDay)` sums the entries with value day ≤ `valueDay` that were posted by the end of `knownAtEndOfDay`.
+`process(event, day)` takes the current day from the caller; nothing in the ledger has a clock. `balance(account, valueDay, knownAtEndOfDay)` sums the entries with value day ≤ `valueDay` that were posted by the end of `knownAtEndOfDay`. `available(account, day)` is that balance for the current day, minus active holds. A hold is active while its approved authorization has no settlement entry; it is never stored as a status, so settling releases it without changing anything.
 
 A new event type means a new handler class; `EventProcessor` and `Ledger` do not change. Because handlers are looked up in a map, the compiler can no longer check that every event type is handled, so `EventProcessor` checks it when it is created (against the permitted subclasses of the sealed `Event`) and refuses to start if a handler is missing.
 

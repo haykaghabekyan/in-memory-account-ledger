@@ -218,3 +218,23 @@ the original event is unknown, belongs to a different account, posted no
 entries (e.g. an authorization), or is already reversed. The last case stops a
 reversal from being applied twice. A reversal cancels every entry the original
 posted, each on that entry's own value date.
+
+### Settlements that do not match a usable authorization
+
+Criterion 4 covers a settlement with no authorization (Auth-Z). The spec says
+nothing about a settlement whose authorization exists but cannot be settled.
+Resolution: the settlement is rejected (no entry) and reported as an error when
+the authorization was declined (the merchant was told no, so nothing was
+committed), is already settled (a second settlement would charge twice), or
+belongs to a different account. Several partial settlements against one
+authorization (e.g. split shipments) are out of scope.
+Consequence: if a settlement is later reversed, its hold does not come back.
+The authorization stays settled; the reversal only returns the money.
+
+### Reused authorization ids
+
+The spec does not say what happens if a second authorization arrives with an
+authorization id that already exists (under a different event id).
+Resolution: it is rejected and reported, and no decision is recorded.
+Otherwise a later settlement could not tell which authorization it settles.
+An exact repeat of the same event is already handled as a duplicate event.

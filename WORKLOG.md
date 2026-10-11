@@ -18,3 +18,4 @@ Times are local (UTC+04).
 - 14:42 Added a GitHub Actions workflow that runs the tests on every push and pull request.
 - 14:53 Added the ledger core: append-only entries and event log, credits (with instalments), debits, reversals, value-dated balances as known at a given day, and duplicate-event handling. Recorded duplicate events and failed reversals in AMBIGUITIES.md.
 - 15:00 Split the ledger core by responsibility before adding more event types: the ledger as a store, an event processor for the shared steps, and one handler per event type (Strategy) instead of a type-check chain.
+- 15:22 Added authorizations and settlements: approve or decline on available balance, holds worked out from decisions and settlement entries, Auth-Z rejected as an exception. Recorded rules for unusable settlements and reused authorization ids in AMBIGUITIES.md.
