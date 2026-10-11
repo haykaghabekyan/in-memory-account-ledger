@@ -43,6 +43,27 @@ Run from the repository root.
 
 The first run downloads JUnit and the Maven plugins, so it needs network access.
 
+## Code structure
+
+Domain types live in `src/main/java/ledger/domain`:
+
+| Type | What it is |
+|---|---|
+| `Currency` | AED (2 dp) and BHD (3 dp); the precision lives with the currency |
+| `Money` | an exact signed amount in one currency, always at that currency's precision; refuses to mix currencies |
+| `Account` | an account id and its currency |
+| `Entry`, `EntryType` | one immutable ledger line: signed amount, value day, booked day, and the event that caused it (none for fees and interest) |
+| `AuthorizationDecision`, `Decision` | the final approve/decline decision for an authorization |
+| `ProcessingError` | something refused or not possible, kept for the report |
+| `InterestAccrual` | a memo record of one day's rounded interest; not a ledger entry |
+
+Design choices in these types:
+
+- **Signed amounts.** Credits are positive and debits negative, so a balance is a plain sum with no direction logic.
+- **A `Money` type instead of bare `BigDecimal`.** Precision and same-currency checks happen in one place, and all rounding goes through `Money.rounded`.
+- **Days are plain integers** (1–6). The window is fixed, so a wrapper type would add code without preventing a real mistake.
+- **Records are immutable and nothing has a status field.** Only facts that never change are stored: entries and final authorization decisions.
+
 ## How to read the output
 
 _TBD_
