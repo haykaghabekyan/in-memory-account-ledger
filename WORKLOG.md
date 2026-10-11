@@ -15,3 +15,4 @@ Times are local (UTC+04).
 - 14:11 Chose Java 17 and Maven for the build. Decided to use no third-party libraries in the ledger (BigDecimal for exact amounts); JUnit 5 is the only planned dependency, for tests.
 - 14:23 Added the domain types (currency, money, account, entry, authorization decision, error, interest accrual) with tests for money precision and rounding. Documented precision and rounding in NUMBERS.md.
 - 14:35 Added the input event types (credit, debit, authorization, settlement, reversal) behind a sealed interface, with validation tests.
+- 14:42 Added a GitHub Actions workflow that runs the tests on every push and pull request.
