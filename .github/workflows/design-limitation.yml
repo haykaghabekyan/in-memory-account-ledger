@@ -1,0 +1,27 @@
+name: Intentionally failing test
+
+# DesignLimitationTest fails on purpose (see README). This workflow runs it on its own and
+# passes only while it still fails, so the limitation stays demonstrated and the commit
+# status stays green. It turns red if the test ever starts passing.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  must-fail:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Run DesignLimitationTest (expected to fail)
+        run: |
+          if mvn -B test -Dtest=DesignLimitationTest -DexcludedTestGroups=; then
+            echo "::error::DesignLimitationTest passed, but it is meant to fail. See README."
+            exit 1
+          fi
+          echo "DesignLimitationTest failed as intended: the design limitation is still demonstrated."

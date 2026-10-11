@@ -24,3 +24,4 @@ Times are local (UTC+04).
 - 15:58 Added interest: daily memo accruals from the Day 6 view with the rounding carried forward, capitalized as one credit on Day 6 (ACC-001 1.02 → 466.02, ACC-002 0.008 → 10.008). Documented the rate in NUMBERS.md.
 - 16:14 Added the replay and daily report: E1 to E10 replayed in the listed order with a close after each day and interest after Day 6. Printed output matches the expected results (Day 5 -230.00, Day 6 466.02, ACC-002 10.008). Documented how to read the output in the README.
 - 16:19 Added the intentionally failing test: a day negative only because of earlier fees is still charged, so one repaid overdraft gets four fees. Excluded from the default build and CI by tag, with a separate command to run it; documented in README and AMBIGUITIES.md.
+- 16:23 Added a separate GitHub Actions workflow that runs the intentionally failing test and passes only while it still fails. Documented how to run it locally.

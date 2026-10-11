@@ -1,6 +1,7 @@
 # In-Memory Account Ledger
 
 [![Build and test](https://github.com/haykaghabekyan/in-memory-account-ledger/actions/workflows/ci.yml/badge.svg)](https://github.com/haykaghabekyan/in-memory-account-ledger/actions/workflows/ci.yml)
+[![Intentionally failing test](https://github.com/haykaghabekyan/in-memory-account-ledger/actions/workflows/design-limitation.yml/badge.svg)](https://github.com/haykaghabekyan/in-memory-account-ledger/actions/workflows/design-limitation.yml)
 
 An in-memory account ledger core. The full spec is in [TASK.md](TASK.md).
 
@@ -49,13 +50,42 @@ The first run downloads JUnit and the Maven plugins, so it needs network access.
 
 ### The intentionally failing test
 
-`src/test/java/ledger/core/DesignLimitationTest.java` fails on purpose: it states an expectation this design does not meet, with inline comments explaining what it reveals. It is tagged `design-limitation` and excluded from `mvn test` (and so from CI) by the `excludedTestGroups` property in `pom.xml`; the commands above switch the exclusion off.
+`src/test/java/ledger/core/DesignLimitationTest.java` fails on purpose: it states an expectation this design does not meet, with inline comments explaining what it reveals. It is tagged `design-limitation` and excluded from `mvn test` (and from the Build and test workflow) by the `excludedTestGroups` property in `pom.xml`.
 
 The test: an account goes 10.00 overdrawn on Day 1 and the customer pays it back on Day 2. It expects one fee. The ledger charges four (Days 1 to 4, 100.00 in total), because each day's fee is decided on a balance that includes earlier days' fees, as the spec's balance definition requires, so the bank's own fee keeps the account negative and generates the next fee. The fix (decide fees excluding all fees) would not change the E1 to E10 replay, but it would depart from the spec's stated rule, so it is kept as a known limitation.
 
+To run it locally:
+
+1. Set `JAVA_HOME` if needed (see Prerequisites).
+2. Run only this test. `-DexcludedTestGroups=` (empty value) switches the exclusion off. Without it the test stays excluded: Maven runs 0 tests and reports `BUILD SUCCESS`, which looks like a pass but is not.
+
+   ```
+   mvn test -Dtest=DesignLimitationTest -DexcludedTestGroups=
+   ```
+
+3. Expect `BUILD FAILURE` with:
+
+   ```
+   expected: <[FEE-ACC-001-D1-1]> but was: <[FEE-ACC-001-D1-1, FEE-ACC-001-D2-1, FEE-ACC-001-D3-1, FEE-ACC-001-D4-1]>
+   Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
+   ```
+
+4. To run it together with all other tests: `mvn test -DexcludedTestGroups=` (60 tests, 1 failure).
+
+To run the same check as the workflow (succeeds only if the test fails):
+
+```
+if mvn -B test -Dtest=DesignLimitationTest -DexcludedTestGroups=; then echo "UNEXPECTED: the test passed"; else echo "OK: the test failed as intended"; fi
+```
+
 ### Continuous integration
 
-GitHub Actions runs on JDK 17 for every push and pull request ([workflow](.github/workflows/ci.yml)). It builds and tests the project (`mvn -B verify`), then runs the app (`mvn -B -q exec:java`), so the app's output can be read in the run's log without cloning the repository. The badge at the top shows the latest result.
+Two GitHub Actions workflows run on JDK 17 for every push and pull request:
+
+- **Build and test** ([ci.yml](.github/workflows/ci.yml)) builds and tests the project (`mvn -B verify`, which skips the intentionally failing test), then runs the app (`mvn -B -q exec:java`), so the daily report can be read in the run's log without cloning the repository.
+- **Intentionally failing test** ([design-limitation.yml](.github/workflows/design-limitation.yml)) runs `DesignLimitationTest` on its own and passes only while that test still fails. Green means the design limitation is still demonstrated (the failure and its explanation are in the run's log); red means the test started passing and needs looking at. This keeps every commit's status green without hiding the failure.
+
+The badges at the top show the latest result of each.
 
 ## Code structure
 
